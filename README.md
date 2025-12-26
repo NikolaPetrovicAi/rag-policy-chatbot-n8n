@@ -86,6 +86,7 @@ rag-policy-chatbot-n8n/
         ├── workflow_overview.png
         ├── agent_node.png
         └── pinecone_output.png
+        ```
 
 ## ⚙️ Technologies Used
 
