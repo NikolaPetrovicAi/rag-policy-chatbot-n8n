@@ -1,0 +1,339 @@
+{
+  "name": "RAG Pipeline & Chat Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "10EY2AJ1z3tQq1qX3EbXkukMzSjimjKM8",
+          "mode": "list",
+          "cachedResultName": "RAG Pipline",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/10EY2AJ1z3tQq1qX3EbXkukMzSjimjKM8"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        624
+      ],
+      "id": "4a0e0a34-8f23-4524-a268-474ad1dbbcd2",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "bE6excoao6mMXQdT",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -672,
+        624
+      ],
+      "id": "3178eb54-6b7d-4129-a07f-c8f448855c53",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "bE6excoao6mMXQdT",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "rag1",
+          "mode": "list",
+          "cachedResultName": "rag1"
+        },
+        "options": {
+          "pineconeNamespace": "store_policies"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -448,
+        512
+      ],
+      "id": "9fbaff85-45ca-4884-bda4-822e0c64b0a3",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "PINECONE_API_KEY",
+          "name": "PineconeApi Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -432,
+        736
+      ],
+      "id": "dfa8e238-c7c3-45da-a415-48ea3ad76b97",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_API_KEY_HERE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a policy support assistant for an international electronics store.\n\nFor EVERY user question, you MUST call the Pinecone policy retrieval tool before answering.\nYou must use the retrieved policy text as the ONLY source of truth.\n\nDo NOT answer from general knowledge.\nDo NOT guess or infer information that is not explicitly stated in the policies.\n\nIf the retrieved context does not contain the answer, respond with:\n\"This information is not specified in the store policies.\"\n\nWhen answering:\n- Clearly answer the question.\n- At the end of the answer, list the source document name(s) under a \"Source:\" section.\n- Use the exact policy document titles as they appear in the retrieved context.\n\nAlways base your answer strictly on the retrieved documents.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        256,
+        512
+      ],
+      "id": "9feeb3c7-a505-40f6-9010-92779f010350",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        512
+      ],
+      "id": "43707411-381b-4dd5-978b-d87cbad3d0b7",
+      "name": "When chat message received",
+      "webhookId": "b6320476-915a-4f22-a595-b7ab0ec8d5c8"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        736
+      ],
+      "id": "63fbef3e-63e8-46f0-9a78-860462b1c3f4",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_API_KEY_HERE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Call this tool to accest the policy and FAQ database",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "rag1",
+          "mode": "list",
+          "cachedResultName": "rag1"
+        },
+        "options": {
+          "pineconeNamespace": "store_policies"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        736
+      ],
+      "id": "24052ec4-318b-40e6-bad5-6a04acf9c11c",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "PINECONE_API_KEY",
+          "name": "PineconeApi Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        896
+      ],
+      "id": "da116a97-3a84-4d24-ba14-47f19cbc48e6",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_API_KEY_HERE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        736
+      ],
+      "id": "a760448e-d19a-4567-b28a-d7cf3bf3d1b2",
+      "name": "Default Data Loader"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        []
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8ec87a3c-38a7-4c32-8bc1-7cead5c94651",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ef63a3d75d25702c055e0787da9d09d88e865c04f07c30f332d9a51b0537e972"
+  },
+  "id": "UzGRRkXKuZkWkp0c",
+  "tags": []
+}
