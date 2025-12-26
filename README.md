@@ -66,6 +66,8 @@ The Pinecone Vector Store returns relevant policy chunks (including metadata suc
 
 ---
 
+
+
 ## 📂 Repository Structure
 
 ```text
@@ -86,7 +88,7 @@ rag-policy-chatbot-n8n/
         ├── workflow_overview.png
         ├── agent_node.png
         └── pinecone_output.png
-        ```
+```
 
 ## ⚙️ Technologies Used
 
